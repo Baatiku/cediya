@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NaijaFlicks Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Device Control</h1>
+    <button onclick="refreshDevices()">Refresh</button>
+    <table id="devicesTable">
+        <thead>
+            <tr>
+                <th>Device ID</th>
+                <th>Model</th>
+                <th>Lock</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const supabase = Supabase.createClient('https://nbqicifkamuliefebuou.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icWljaWZrYW11bGllZmVidW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM2MTIxMjUsImV4cCI6MjA1OTE4ODEyNX0.93U-xFI2B6UPcp2C7oiQWIZ--F26VEVU_AhFu0HLWYA');
+
+        async function refreshDevices() {
+            const { data, error } = await supabase.from('devices').select();
+            if (error) return console.error(error);
+            const tbody = document.querySelector('#devicesTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(device => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${device.device_id}</td>
+                    <td>${device.device_model}</td>
+                    <td><input type="checkbox" ${device.overlay_enabled ? 'checked' : ''} 
+                        onchange="toggleOverlay('${device.device_id}', this.checked)"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function toggleOverlay(deviceId, enabled) {
+            const { error } = await supabase
+                .from('devices')
+                .update({ overlay_enabled: enabled })
+                .eq('device_id', deviceId);
+            if (error) console.error(error);
+        }
+
+        refreshDevices();
+    </script>
+</body>
+</html>
